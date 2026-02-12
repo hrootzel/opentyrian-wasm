@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenTyrian WASM</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0b0e13;
+      }
+      #canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+      #status {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #b8d8ff;
+        font: 600 18px system-ui, sans-serif;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status">Loading OpenTyrian...</div>
+    <canvas id="canvas"></canvas>
+    <script>
+      var statusEl = document.getElementById('status');
+      var Module = {
+        canvas: document.getElementById('canvas'),
+        preRun: [function () {
+          if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+            return;
+          }
+          try { FS.mkdir('/persist'); } catch (e) {}
+          try { FS.mount(IDBFS, {}, '/persist'); } catch (e) {}
+          Module.addRunDependency('idbfs-sync');
+          FS.syncfs(true, function (err) {
+            if (err) {
+              console.error('IDBFS initial sync failed:', err);
+            } else {
+              console.log('IDBFS initial sync complete');
+            }
+            Module.removeRunDependency('idbfs-sync');
+          });
+        }],
+        print: function (t) { console.log(t); },
+        printErr: function (t) { console.error(t); },
+        setStatus: function (t) {
+          statusEl.textContent = t || '';
+          if (!t) {
+            statusEl.style.display = 'none';
+          }
+        },
+        monitorRunDependencies: function (left) {
+          if (left) {
+            Module.setStatus('Loading data...');
+          } else {
+            Module.setStatus('');
+          }
+        },
+        onRuntimeInitialized: function () {
+          Module.setStatus('');
+        },
+        onAbort: function (why) {
+          console.error('Engine abort:', why);
+        },
+        onExit: function (code) {
+          console.log('Engine exit:', code);
+        }
+      };
+
+      function persistFs() {
+        try {
+          if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
+            FS.syncfs(false, function (err) {
+              if (err) {
+                console.error('IDBFS flush failed:', err);
+              }
+            });
+          }
+        } catch (e) {}
+      }
+      window.addEventListener('pagehide', persistFs);
+      window.addEventListener('beforeunload', persistFs);
+
+      // Browser audio starts suspended until user gesture; resume SDL context on first input.
+      function unlockAudio() {
+        try {
+          if (Module.SDL2 && Module.SDL2.audioContext && Module.SDL2.audioContext.state === 'suspended') {
+            Module.SDL2.audioContext.resume();
+          }
+        } catch (e) {}
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+      }
+      window.addEventListener('pointerdown', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
+    </script>
+    {{{ SCRIPT }}}
+  </body>
+</html>

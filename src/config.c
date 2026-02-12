@@ -253,7 +253,12 @@ bool load_opentyrian_config(void)
 	
 	Config *config = &opentyrian_config;
 	
-	FILE *file = dir_fopen_warn(get_user_directory(), "opentyrian.cfg", "r");
+	FILE *file =
+#ifdef EMSCRIPTEN
+		dir_fopen(get_user_directory(), "opentyrian.cfg", "r");
+#else
+		dir_fopen_warn(get_user_directory(), "opentyrian.cfg", "r");
+#endif
 	if (file == NULL)
 		return false;
 	
@@ -749,7 +754,9 @@ const char *get_user_directory(void)
 	
 	if (strlen(user_dir) == 0)
 	{
-#ifndef TARGET_WIN32
+#ifdef EMSCRIPTEN
+		strcpy(user_dir, "/persist/opentyrian");
+#elif !defined(TARGET_WIN32)
 		char *xdg_config_home = getenv("XDG_CONFIG_HOME");
 		if (xdg_config_home != NULL)
 		{
@@ -786,7 +793,12 @@ void JE_loadConfiguration(void)
 	JE_byte *p;
 	int y;
 	
-	fi = dir_fopen_warn(get_user_directory(), "tyrian.cfg", "rb");
+	fi =
+#ifdef EMSCRIPTEN
+		dir_fopen(get_user_directory(), "tyrian.cfg", "rb");
+#else
+		dir_fopen_warn(get_user_directory(), "tyrian.cfg", "rb");
+#endif
 	if (fi && ftell_eof(fi) == 28)
 	{
 		background2 = 0;
@@ -838,7 +850,12 @@ void JE_loadConfiguration(void)
 	
 	set_volume(tyrMusicVolume, fxVolume);
 	
-	fi = dir_fopen_warn(get_user_directory(), "tyrian.sav", "rb");
+	fi =
+#ifdef EMSCRIPTEN
+		dir_fopen(get_user_directory(), "tyrian.sav", "rb");
+#else
+		dir_fopen_warn(get_user_directory(), "tyrian.sav", "rb");
+#endif
 	if (fi)
 	{
 

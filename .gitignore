@@ -34,3 +34,13 @@ tyrian.sav
 
 # Doxygen output
 /doc/doxygen/
+
+# CMake/Ninja build output
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/compile_commands.json
+/build.ninja
+/.ninja_deps
+/.ninja_log
