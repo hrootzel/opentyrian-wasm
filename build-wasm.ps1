@@ -7,6 +7,7 @@ param(
   [string]$Config = "Release",
   [switch]$Debug,
   [switch]$Release,
+  [switch]$CleanupBuild,
   [switch]$Clean,
   [switch]$Build = $true,
   [switch]$Rebuild
@@ -57,9 +58,25 @@ function Prepend-Path([string]$PathPart) {
   $env:PATH = $resolved + ";" + ($parts -join ';')
 }
 
+function Cleanup-WasmRuntime([string]$BuildDirFull) {
+  if (-not (Test-Path $BuildDirFull)) {
+    throw "Build directory not found: $BuildDirFull"
+  }
+  $binDir = Join-Path $BuildDirFull "bin"
+  if (-not (Test-Path $binDir)) {
+    throw "Build bin directory not found: $binDir"
+  }
+
+  Get-ChildItem -Force -LiteralPath $BuildDirFull | ForEach-Object {
+    if ($_.Name -ieq "bin") { return }
+    Remove-Item -Recurse -Force -LiteralPath $_.FullName
+  }
+}
+
 $emsdk = Resolve-EmsdkRoot
 $ninja = Resolve-Ninja
 $env:EMSDK = $emsdk
+$env:EMSDK_QUIET = "1"
 
 Prepend-Path (Split-Path $ninja)
 Prepend-Path $LLVMBin
@@ -70,6 +87,13 @@ Push-Location $emsdk
 Pop-Location
 
 & "$emsdk\\emsdk_env.ps1" | Out-Null
+
+if ($CleanupBuild -and -not $Build -and -not $Clean -and -not $Rebuild) {
+  $buildDirFull = (Resolve-Path $BuildDir).Path
+  Cleanup-WasmRuntime $buildDirFull
+  Write-Host "CleanupBuild complete: kept runtime files in $buildDirFull\\bin"
+  exit 0
+}
 
 if ($Clean -and (Test-Path $BuildDir)) {
   Remove-Item -Recurse -Force $BuildDir
@@ -124,6 +148,10 @@ if ($Build) {
   $htmlPath = Join-Path $binDir "opentyrian.html"
   if (-not (Test-Path $htmlPath)) {
     throw "Expected output missing: $htmlPath"
+  }
+
+  if ($CleanupBuild) {
+    Cleanup-WasmRuntime $buildDirFull
   }
 
   Write-Host "Build complete."

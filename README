@@ -1,6 +1,13 @@
 OpenTyrian
 ================================================================================
 
+This repository is **OpenTyrian WASM - a browser/WebAssembly port of OpenTyrian**.
+
+Try it on <https://hrootzel.github.io/opentyrian-wasm/>
+
+For WebAssembly/browser build and runtime details, read:
+  README-WASM.md
+
 OpenTyrian is an open-source port of the DOS game Tyrian.
 
 Tyrian is an arcade-style vertical scrolling shooter.  The story is set
