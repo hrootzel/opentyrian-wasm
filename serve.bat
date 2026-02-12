@@ -19,18 +19,14 @@ for %%I in ("%DIR%") do set "FULLDIR=%%~fI"
 set "IS_BUILD=1"
 if /I "%DIR%"=="." set "IS_BUILD=0"
 
-echo Hedgewars Web Frontend
-echo ======================
+echo OpenTyrian WASM
+echo ==============
 if "%IS_BUILD%"=="1" (
   echo Serving build output: %FULLDIR%
-  echo Root:     http://localhost:%PORT%/ ^(redirects to frontend^)
-  echo Frontend: http://localhost:%PORT%/web-frontend/
-  echo Engine:   http://localhost:%PORT%/hwengine.html
+  echo Game:     http://localhost:%PORT%/opentyrian.html
 ) else (
   echo Dev mode ^(no build output found^)
-  echo Root:     http://localhost:%PORT%/ ^(redirects to frontend^)
-  echo Frontend: http://localhost:%PORT%/web-frontend/
-  echo Note: Engine launch requires a build ^(.\build.ps1 -StageData^)
+  echo Note: Build first with .\build-wasm.ps1
 )
 echo.
 echo Press Ctrl+C to stop
@@ -44,7 +40,7 @@ exit /b %errorlevel%
 :ResolveServeDir
 set "DIR=."
 for %%D in ("build\wasm\bin" "build\wasm") do (
-  if exist "%%~D\hwengine.html" (
+  if exist "%%~D\opentyrian.html" (
     set "DIR=%%~D"
     goto :eof
   )

@@ -8,12 +8,10 @@ resolve_serve_dir() {
   local candidates=(
     "build/wasm/bin"
     "build/wasm"
-    "build/wasm8/bin"
-    "build/wasm8"
   )
   local d
   for d in "${candidates[@]}"; do
-    if [[ -f "${d}/hwengine.html" ]]; then
+    if [[ -f "${d}/opentyrian.html" ]]; then
       printf '%s\n' "${d}"
       return 0
     fi
@@ -36,18 +34,14 @@ if [[ "${DIR}" == "." ]]; then
   IS_BUILD=0
 fi
 
-echo "Hedgewars Web Frontend"
-echo "======================"
+echo "OpenTyrian WASM"
+echo "=============="
 if [[ "${IS_BUILD}" == "1" ]]; then
   echo "Serving build output: ${FULLDIR}"
-  echo "Root:     http://localhost:${PORT}/ (redirects to frontend)"
-  echo "Frontend: http://localhost:${PORT}/web-frontend/"
-  echo "Engine:   http://localhost:${PORT}/hwengine.html"
+  echo "Game:     http://localhost:${PORT}/opentyrian.html"
 else
   echo "Dev mode (no build output found)"
-  echo "Root:     http://localhost:${PORT}/ (redirects to frontend)"
-  echo "Frontend: http://localhost:${PORT}/web-frontend/"
-  echo "Note: Engine launch requires a build (./build-was-docker.sh or ./build.ps1 -StageData)"
+  echo "Note: Build first with ./build-wasm.ps1"
 fi
 echo
 echo "Press Ctrl+C to stop"

@@ -55,15 +55,16 @@ if(EMSCRIPTEN)
   target_compile_options(opentyrian PRIVATE -sUSE_SDL=2)
 
   if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    target_compile_options(opentyrian PRIVATE -O0 -gsource-map -sASSERTIONS=2)
-    target_link_options(opentyrian PRIVATE -O0 -gsource-map -sASSERTIONS=2)
+    target_compile_options(opentyrian PRIVATE -O0 -gsource-map)
+    target_link_options(opentyrian PRIVATE -O0 -gsource-map -sASSERTIONS=2 -sASYNCIFY)
   else()
     target_compile_options(opentyrian PRIVATE -O3)
-    target_link_options(opentyrian PRIVATE -O3)
+    target_link_options(opentyrian PRIVATE -O3 -sASYNCIFY)
   endif()
 
   target_link_options(opentyrian PRIVATE
     -sUSE_SDL=2
+    -sSTACK_SIZE=8388608
     -sALLOW_MEMORY_GROWTH=1
     -sEXIT_RUNTIME=1
     -sEXPORTED_RUNTIME_METHODS=['callMain']

@@ -88,9 +88,13 @@ void init_video(void)
 
 	// Create the window with a temporary initial size, hidden until we set up the
 	// scaler and find the true window size
+	Uint32 window_flags = SDL_WINDOW_RESIZABLE;
+#ifndef EMSCRIPTEN
+	window_flags |= SDL_WINDOW_HIDDEN;
+#endif
 	main_window = SDL_CreateWindow("OpenTyrian",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		vga_width, vga_height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+		vga_width, vga_height, window_flags);
 
 	if (main_window == NULL)
 	{
@@ -103,7 +107,9 @@ void init_video(void)
 	init_texture();
 	init_scaler(scaler);
 
+#ifndef EMSCRIPTEN
 	SDL_ShowWindow(main_window);
+#endif
 
 	SDL_SetRenderDrawColor(main_window_renderer, 0, 0, 0, 255);
 	SDL_RenderClear(main_window_renderer);

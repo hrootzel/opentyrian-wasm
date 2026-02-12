@@ -35,6 +35,22 @@
       var statusEl = document.getElementById('status');
       var Module = {
         canvas: document.getElementById('canvas'),
+        preRun: [function () {
+          if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+            return;
+          }
+          try { FS.mkdir('/persist'); } catch (e) {}
+          try { FS.mount(IDBFS, {}, '/persist'); } catch (e) {}
+          Module.addRunDependency('idbfs-sync');
+          FS.syncfs(true, function (err) {
+            if (err) {
+              console.error('IDBFS initial sync failed:', err);
+            } else {
+              console.log('IDBFS initial sync complete');
+            }
+            Module.removeRunDependency('idbfs-sync');
+          });
+        }],
         print: function (t) { console.log(t); },
         printErr: function (t) { console.error(t); },
         setStatus: function (t) {
@@ -52,8 +68,28 @@
         },
         onRuntimeInitialized: function () {
           Module.setStatus('');
+        },
+        onAbort: function (why) {
+          console.error('Engine abort:', why);
+        },
+        onExit: function (code) {
+          console.log('Engine exit:', code);
         }
       };
+
+      function persistFs() {
+        try {
+          if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
+            FS.syncfs(false, function (err) {
+              if (err) {
+                console.error('IDBFS flush failed:', err);
+              }
+            });
+          }
+        } catch (e) {}
+      }
+      window.addEventListener('pagehide', persistFs);
+      window.addEventListener('beforeunload', persistFs);
 
       // Browser audio starts suspended until user gesture; resume SDL context on first input.
       function unlockAudio() {

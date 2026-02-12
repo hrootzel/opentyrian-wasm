@@ -87,6 +87,18 @@ Output location:
 
 Serve `build/wasm/bin` with any static web server and open `opentyrian.html`.
 
+Helper scripts:
+
+```bat
+serve.bat
+serve.bat 8080 build\wasm\bin
+```
+
+```bash
+./serve.sh
+./serve.sh 8080 build/wasm/bin
+```
+
 Example:
 
 ```bash
