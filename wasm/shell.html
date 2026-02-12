@@ -33,21 +33,57 @@
     <canvas id="canvas"></canvas>
     <script>
       var statusEl = document.getElementById('status');
+      var persistSyncInFlight = false;
+      var persistReady = false;
+
+      function persistFs() {
+        try {
+          if (!persistReady || persistSyncInFlight) {
+            return;
+          }
+          if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
+            persistSyncInFlight = true;
+            FS.syncfs(false, function (err) {
+              persistSyncInFlight = false;
+              if (err) {
+                console.error('IDBFS flush failed:', err);
+              }
+            });
+          }
+        } catch (e) {
+          persistSyncInFlight = false;
+        }
+      }
+
+      function hasRealIdbfs() {
+        return typeof IDBFS === 'object' && IDBFS !== null && typeof IDBFS.mount === 'function';
+      }
+
       var Module = {
         canvas: document.getElementById('canvas'),
         preRun: [function () {
-          if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+          if (typeof FS === 'undefined') {
+            console.error('FS is unavailable; cannot enable persistence.');
+            return;
+          }
+          if (!hasRealIdbfs()) {
+            console.error('IDBFS backend not linked. Rebuild with -lidbfs.js.');
             return;
           }
           try { FS.mkdir('/persist'); } catch (e) {}
-          try { FS.mount(IDBFS, {}, '/persist'); } catch (e) {}
+          try { FS.mkdir('/persist/opentyrian'); } catch (e) {}
+          try {
+            FS.mount(IDBFS, { autoPersist: true }, '/persist/opentyrian');
+          } catch (e) {
+            console.error('IDBFS mount failed:', e);
+            return;
+          }
           Module.addRunDependency('idbfs-sync');
           FS.syncfs(true, function (err) {
             if (err) {
               console.error('IDBFS initial sync failed:', err);
-            } else {
-              console.log('IDBFS initial sync complete');
             }
+            persistReady = true;
             Module.removeRunDependency('idbfs-sync');
           });
         }],
@@ -76,18 +112,11 @@
           console.log('Engine exit:', code);
         }
       };
-
-      function persistFs() {
-        try {
-          if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
-            FS.syncfs(false, function (err) {
-              if (err) {
-                console.error('IDBFS flush failed:', err);
-              }
-            });
-          }
-        } catch (e) {}
-      }
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+          persistFs();
+        }
+      });
       window.addEventListener('pagehide', persistFs);
       window.addEventListener('beforeunload', persistFs);
 

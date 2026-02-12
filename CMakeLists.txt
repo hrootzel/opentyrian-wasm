@@ -64,6 +64,8 @@ if(EMSCRIPTEN)
 
   target_link_options(opentyrian PRIVATE
     -sUSE_SDL=2
+    -lidbfs.js
+    -sFORCE_FILESYSTEM=1
     -sSTACK_SIZE=8388608
     -sALLOW_MEMORY_GROWTH=1
     -sEXIT_RUNTIME=1
