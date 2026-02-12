@@ -34,6 +34,10 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#endif
+
 #ifdef _MSC_VER
 #include <direct.h>
 #define mkdir _mkdir
@@ -792,6 +796,8 @@ void JE_loadConfiguration(void)
 	int z;
 	JE_byte *p;
 	int y;
+	bool missing_legacy_cfg = false;
+	bool missing_save = false;
 	
 	fi =
 #ifdef EMSCRIPTEN
@@ -829,6 +835,7 @@ void JE_loadConfiguration(void)
 	}
 	else
 	{
+		missing_legacy_cfg = true;
 		printf("\nInvalid or missing TYRIAN.CFG! Continuing using defaults.\n\n");
 		
 		soundEffects = 1;
@@ -930,6 +937,7 @@ void JE_loadConfiguration(void)
 	}
 	else
 	{
+		missing_save = true;
 		/* We didn't have a save file! Let's make up random stuff! */
 		editorLevel = 800;
 
@@ -963,6 +971,12 @@ void JE_loadConfiguration(void)
 	}
 	
 	JE_initProcessorType();
+
+#ifdef EMSCRIPTEN
+	// Persist initialized defaults so subsequent runs load from IDBFS.
+	if (missing_legacy_cfg || missing_save)
+		JE_saveConfiguration();
+#endif
 }
 
 void JE_saveConfiguration(void)
@@ -1085,4 +1099,10 @@ void JE_saveConfiguration(void)
 	}
 	
 	save_opentyrian_config();
+
+#ifdef EMSCRIPTEN
+	emscripten_run_script(
+		"try{if(typeof FS!=='undefined'&&typeof FS.syncfs==='function'){FS.syncfs(false,function(err){if(err){console.error('IDBFS save flush failed:',err);}});}}catch(e){}"
+	);
+#endif
 }
