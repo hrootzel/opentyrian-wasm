@@ -26,12 +26,14 @@ Goal:
 Approach:
 - Add a wasm build script for Windows (`build-wasm.ps1`).
 - Add Linux/container reproducibility (`Dockerfile.wasm`, `build-was-docker.sh`).
+- Use CMake + Ninja as the canonical build system (aligned with `hw-wasm`).
+- Add top-level `CMakeLists.txt` with Emscripten link/preload/shell settings.
 - Compile with `WITH_NETWORK=false` for first target.
 - Use Emscripten shell template and preload `data/`.
 
 Status:
-- In progress.
-- Initial scripts and shell are now added.
+- Completed (initial version).
+- CMake+Ninja scripts and configuration are in repo; first end-to-end build validation still pending on a machine with emsdk.
 
 ### Step 2: Graphics path to WebGL-backed canvas
 

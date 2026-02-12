@@ -2,14 +2,17 @@
 
 This repository is being ported to WebAssembly for browser play.
 
+WASM builds now use CMake+Ninja. The legacy `Makefile` remains for native workflows.
+
 ## Current Status
 
 Progress against the first three implementation steps:
 
 1. Build environment/pipeline: started
-- Added `build-wasm.ps1` (Windows, emsdk + Emscripten Make build).
+- Added `CMakeLists.txt` with wasm target settings.
+- Added `build-wasm.ps1` (Windows, emsdk + `emcmake` + Ninja).
 - Added `Dockerfile.wasm` and `build-was-docker.sh` for containerized Linux builds.
-- Added initial Emscripten mode in `Makefile` (`EMSCRIPTEN=true`, preload `data/`).
+- Build scripts now use CMake+Ninja (`emcmake cmake` + `emmake cmake --build`) aligned with `hw-wasm`.
 
 2. Graphics to web canvas/WebGL backend: started
 - Added wasm shell template at `wasm/shell.html` with full-window canvas.
@@ -32,12 +35,22 @@ Progress against the first three implementation steps:
 
 Prereqs:
 - emsdk installed (default lookup: `$env:EMSDK` or `%USERPROFILE%\\emsdk`)
-- `make` in PATH
+- CMake
+- Ninja
+- Optional local tool path overrides:
+  - `-EmsdkRoot` (emsdk location)
+  - `-LLVMBin` (default: `C:\Program Files\LLVM\bin`)
 
 Command:
 
 ```powershell
 .\build-wasm.ps1
+```
+
+Explicit path example:
+
+```powershell
+.\build-wasm.ps1 -EmsdkRoot C:\Users\andre\emsdk -LLVMBin "C:\Program Files\LLVM\bin"
 ```
 
 Debug build:

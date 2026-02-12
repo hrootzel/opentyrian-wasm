@@ -9,7 +9,6 @@ else
 endif
 
 WITH_NETWORK := true
-EMSCRIPTEN ?= false
 
 ################################################################################
 
@@ -74,17 +73,6 @@ CFLAGS ?= -pedantic \
 LDFLAGS ?=
 LDLIBS ?=
 
-ifeq ($(EMSCRIPTEN), true)
-    SDL_CPPFLAGS :=
-    SDL_LDFLAGS :=
-    SDL_LDLIBS := -s USE_SDL=2 \
-                  -s ASSERTIONS=1 \
-                  -s ALLOW_MEMORY_GROWTH=1 \
-                  -s EXIT_RUNTIME=1 \
-                  -s EXPORTED_RUNTIME_METHODS='["callMain"]' \
-                  --shell-file wasm/shell.html \
-                  --preload-file data@/data
-else
 ifeq ($(WITH_NETWORK), true)
     SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 SDL2_net --cflags)
     SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 SDL2_net --libs-only-L --libs-only-other)
@@ -93,7 +81,6 @@ else
     SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 --cflags)
     SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 --libs-only-L --libs-only-other)
     SDL_LDLIBS := $(shell $(PKG_CONFIG) sdl2 --libs-only-l)
-endif
 endif
 
 ALL_CPPFLAGS = -DTARGET_$(PLATFORM) \
