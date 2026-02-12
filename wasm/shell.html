@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenTyrian WASM</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0b0e13;
+      }
+      #canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+      #status {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #b8d8ff;
+        font: 600 18px system-ui, sans-serif;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status">Loading OpenTyrian...</div>
+    <canvas id="canvas"></canvas>
+    <script>
+      var statusEl = document.getElementById('status');
+      var Module = {
+        canvas: document.getElementById('canvas'),
+        print: function (t) { console.log(t); },
+        printErr: function (t) { console.error(t); },
+        setStatus: function (t) {
+          statusEl.textContent = t || '';
+          if (!t) {
+            statusEl.style.display = 'none';
+          }
+        },
+        monitorRunDependencies: function (left) {
+          if (left) {
+            Module.setStatus('Loading data...');
+          } else {
+            Module.setStatus('');
+          }
+        },
+        onRuntimeInitialized: function () {
+          Module.setStatus('');
+        }
+      };
+
+      // Browser audio starts suspended until user gesture; resume SDL context on first input.
+      function unlockAudio() {
+        try {
+          if (Module.SDL2 && Module.SDL2.audioContext && Module.SDL2.audioContext.state === 'suspended') {
+            Module.SDL2.audioContext.resume();
+          }
+        } catch (e) {}
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+      }
+      window.addEventListener('pointerdown', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
+    </script>
+    {{{ SCRIPT }}}
+  </body>
+</html>
